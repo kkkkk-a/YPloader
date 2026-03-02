@@ -205,7 +205,7 @@ def run_yt_task(task_id, url, fmt, cookies, temp_dir):
 
             'extractor_args': {
                 'youtube': {
-                    'player_client':['ios', 'web', 'android'],
+                    'player_client': ['android', 'ios'],
                 }
             },
             'headers': {
