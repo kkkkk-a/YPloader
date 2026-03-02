@@ -27,6 +27,43 @@ progress_lock = Lock()
 finished_tasks = {}
 finished_tasks_lock = Lock()
 
+# 【自動お掃除機能（ガベージコレクション）】
+def cleanup_old_files():
+    """1時間以上経過した一時フォルダを自動削除するスレッド"""
+    while True:
+        try:
+            now = time.time()
+            temp_root = tempfile.gettempdir()
+            
+            # プレフィックスが yt- または px- のフォルダを探す
+            for dirname in os.listdir(temp_root):
+                if dirname.startswith("yt-") or dirname.startswith("px-"):
+                    dir_path = os.path.join(temp_root, dirname)
+                    if os.path.isdir(dir_path):
+                        # フォルダの最終更新時刻を取得
+                        mtime = os.path.getmtime(dir_path)
+                        # 1時間 (3600秒) 以上前のものなら強制削除
+                        if now - mtime > 3600:
+                            shutil.rmtree(dir_path, ignore_errors=True)
+                            
+            # 辞書の古いデータも掃除
+            keys_to_delete =[]
+            with finished_tasks_lock:
+                for tid, info in finished_tasks.items():
+                    if not os.path.exists(info["temp_dir"]):
+                        keys_to_delete.append(tid)
+                for tid in keys_to_delete:
+                    finished_tasks.pop(tid, None)
+                    
+        except Exception as e:
+            print(f"Cleanup error: {e}")
+            
+        time.sleep(1800)  # 30分ごとにパトロール
+
+# サーバー起動時にバックグラウンドでお掃除スレッドを開始
+gc_thread = threading.Thread(target=cleanup_old_files, daemon=True)
+gc_thread.start()
+
 
 def stream_and_cleanup(file_path, temp_dir):
     """ファイルをストリーム送信した後に一時ディレクトリごと削除する"""
@@ -105,6 +142,7 @@ def get_file(task_id):
     temp_dir = task_info['temp_dir']
     content_type = task_info['content_type']
     filename = os.path.basename(file_path)
+    ext = os.path.splitext(filename)[1].lower()
 
     # 取得後はメモリリークを防ぐため辞書から削除
     with finished_tasks_lock:
@@ -112,10 +150,13 @@ def get_file(task_id):
     with progress_lock:
         progress_store.pop(task_id, None)
 
+    # 日本語ファイル名の文字化け・エラー対策（RFC 6266準拠）
+    encoded_filename = quote(filename)
+
     return Response(
         stream_with_context(stream_and_cleanup(file_path, temp_dir)),
         headers={
-            "Content-Disposition": f'attachment; filename="{quote(filename)}"',
+            "Content-Disposition": f"attachment; filename=\"download{ext}\"; filename*=UTF-8''{encoded_filename}",
             "Content-Type": content_type
         }
     )
@@ -147,23 +188,24 @@ def run_yt_task(task_id, url, fmt, cookies, temp_dir):
 
         ffmpeg_path = get_ffmpeg_path()
 
-ydl_opts = {
+        ydl_opts = {
             'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),
             'nocheckcertificate': True,
             'quiet': True,
             'no_warnings': True,
             'ffmpeg_location': ffmpeg_path,
             'writethumbnail': True,
-            'progress_hooks': [yt_progress_hook],
+            'progress_hooks':[yt_progress_hook],
             
-            # --- ここから追加・修正 ---
-            'geo_bypass': True,
-            'geo_bypass_country': 'JP',  # 日本を偽装
-            # -----------------------
+            # --- IP・国別ブロック対策 ---
+            'source_address': '0.0.0.0',  # IPv4強制
+            'geo_bypass': True,           # 地域制限回避
+            'geo_bypass_country': 'JP',   # 日本に偽装
+            # ---------------------------
 
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['ios', 'web', 'android'],
+                    'player_client':['ios', 'web', 'android'],
                 }
             },
             'headers': {
@@ -187,7 +229,7 @@ ydl_opts = {
         elif fmt == 'opus':
             ydl_opts.update({
                 'format': 'bestaudio/best',
-                'postprocessors':[{'key': 'FFmpegExtractAudio', 'preferredcodec': 'opus'}],
+                'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'opus'}],
             })
             content_type = "audio/opus"
         elif fmt == 'webm':
