@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>youtube/pixivダウンローダー</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="tab-container">
+        <div class="tab active" data-target="youtube">YouTube</div>
+        <div class="tab" data-target="pixiv">Pixiv</div>
+    </div>
+
+    <!-- YouTube Tab -->
+    <div id="content-youtube" class="content active">
+        <h2 class="yt-color">YouTube ダウンローダー</h2>
+        
+        <div class="cookie-box yt" id="yt-drop-zone">
+            <div class="drop-hint">ファイルをここに離して登録</div>
+            <div class="cookie-header">
+                <h3>🍪 Bot検知回避 (Cookie設定)</h3>
+                <span id="yt-c-status" class="status-ng">未設定 ⚠️</span>
+            </div>
+            <p class="explain-text">
+                YouTubeのエラー（Sign in to confirm...）を回避するには、「ログイン済みの証明書（Cookie）」が必要です。<br>
+                設定しない場合、ダウンロードに失敗する可能性が高いです。
+            </p>
+            <ol class="step-list">
+                <li>PCのChrome等で <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?hl=ja" target="_blank" class="link">Get cookies.txt LOCALLY</a> 拡張機能をインストールします。</li>
+                <li><a href="https://www.youtube.com/" target="_blank" class="link">YouTube</a> を開き、自分のアカウントにログインします。</li>
+                <li>右上の拡張機能アイコンを押し、<strong>[Export]</strong> ボタンをクリックして <code>youtube.com_cookies.txt</code> を保存します。</li>
+                <li>保存したファイルを、<b>この点線の枠内にドロップ</b>してください。</li>
+            </ol>
+            <label class="file-label">📂 cookies.txt を選択
+                <input type="file" id="yt-cookie-upload" accept=".txt">
+            </label>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="yt-url" placeholder="動画URL (例: https://youtu.be/...)">
+            <select id="yt-format">
+                <option value="mp4">MP4 (動画・互換性高)</option>
+                <option value="webm">WebM (動画・高画質)</option>
+                <option value="mp3">MP3 (音声・一般的)</option>
+                <option value="opus">Opus (音声・最高音質)</option>
+            </select>
+        </div>
+        <button class="btn-yt" id="btn-yt-run">動画を保存</button>
+    </div>
+
+    <!-- Pixiv Tab -->
+    <div id="content-pixiv" class="content">
+        <h2 class="px-color">Pixiv ダウンローダー</h2>
+        
+        <div class="cookie-box px" id="px-drop-zone">
+            <div class="drop-hint">ファイルをここに離して登録</div>
+            <div class="cookie-header">
+                <h3>⚙️ ログイン連携 (必須)</h3>
+                <span id="px-c-status" class="status-ng">未設定 ✕</span>
+            </div>
+            <p class="explain-text">
+                Pixivの画像を取得するには、ログイン情報が必要です。<br>
+                R-18作品や高画質画像の保存にCookieを使用します。
+            </p>
+            <ol class="step-list">
+                <li>PCのChrome等で <a href="https://www.pixiv.net/" target="_blank" class="link">Pixiv</a> にログインしてください。</li>
+                <li>拡張機能 <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?hl=ja" target="_blank" class="link">Get cookies.txt LOCALLY</a> を使ってCookieを出力します。</li>
+                <li>出力された <code>pixiv.net_cookies.txt</code> を<b>この枠内にドロップ</b>してください。</li>
+            </ol>
+            <label class="file-label">📂 cookies.txt を選択
+                <input type="file" id="px-cookie-upload" accept=".txt">
+            </label>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="px-url" placeholder="作品URL または ユーザーURL">
+        </div>
+        <button class="btn-px" id="btn-px-run">画像を保存</button>
+    </div>
+
+    <div id="progress-container">
+        <div id="progress-bar-container">
+            <div id="progress-bar-inner"></div>
+        </div>
+        <div id="msg">準備完了</div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

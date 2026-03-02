@@ -1,0 +1,6 @@
+Flask
+gunicorn
+yt-dlp
+gallery-dl
+Pillow
+mutagen
