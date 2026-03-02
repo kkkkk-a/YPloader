@@ -1,6 +1,7 @@
 Flask
 gunicorn
-yt-dlp
+# yt-dlp を開発中の最新バージョン（Masterブランチ）から直接インストールする
+https://github.com/yt-dlp/yt-dlp/archive/master.zip
 gallery-dl
 Pillow
 mutagen
