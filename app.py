@@ -147,7 +147,7 @@ def run_yt_task(task_id, url, fmt, cookies, temp_dir):
 
         ffmpeg_path = get_ffmpeg_path()
 
-        ydl_opts = {
+ydl_opts = {
             'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),
             'nocheckcertificate': True,
             'quiet': True,
@@ -155,6 +155,12 @@ def run_yt_task(task_id, url, fmt, cookies, temp_dir):
             'ffmpeg_location': ffmpeg_path,
             'writethumbnail': True,
             'progress_hooks': [yt_progress_hook],
+            
+            # --- ここから追加・修正 ---
+            'geo_bypass': True,
+            'geo_bypass_country': 'JP',  # 日本を偽装
+            # -----------------------
+
             'extractor_args': {
                 'youtube': {
                     'player_client': ['ios', 'web', 'android'],
