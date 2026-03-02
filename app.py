@@ -188,7 +188,7 @@ def run_yt_task(task_id, url, fmt, cookies, temp_dir):
 
         ffmpeg_path = get_ffmpeg_path()
 
-        ydl_opts = {
+ydl_opts = {
             'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),
             'nocheckcertificate': True,
             'quiet': True,
@@ -197,19 +197,24 @@ def run_yt_task(task_id, url, fmt, cookies, temp_dir):
             'writethumbnail': True,
             'progress_hooks':[yt_progress_hook],
             
-            # --- IP・国別ブロック対策 ---
+            # --- クッキーなしで突破するための最強設定 ---
             'source_address': '0.0.0.0',  # IPv4強制
-            'geo_bypass': True,           # 地域制限回避
-            'geo_bypass_country': 'JP',   # 日本に偽装
-            # ---------------------------
-
+            'geo_bypass': True,
+            'geo_bypass_country': 'JP',
+            
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'ios'],
+                    # 'tv'クライアントは現在、最もBot検知（PoToken）が緩い通信方式です
+                    # 'mweb'(モバイルWeb)を予備に入れることで成功率を高めます
+                    'player_client': ['tv', 'mweb'],
+                    'player_skip': ['web', 'android', 'ios'], # 規制の厳しいクライアントを明示的にスキップ
                 }
             },
+            # ----------------------------------------
+
             'headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                # テレビ用クライアントに合わせたUser-Agent（または一般的なモバイル用）
+                'User-Agent': 'Mozilla/5.0 (Chromecast; Google TV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
                 'Accept-Language': 'ja-JP,ja;q=0.9',
             }
         }
